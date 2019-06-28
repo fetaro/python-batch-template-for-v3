@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 import sys
 import os
-from optparse     import OptionParser
-from ConfigParser import ConfigParser
+from configparser import ConfigParser
+import click
 import logging
 
 # 親ディレクトリをアプリケーションのホーム(${app_home})に設定
@@ -13,22 +12,13 @@ sys.path.append(os.path.join(app_home,"lib"))
 # 自前のライブラリをロード
 from my_lib import MyLib
 
-if __name__ == "__main__" :
+# コマンドライン引数のハンドリング. must_argは必須オプション、optional_argは任意オプション
+@click.command()
+@click.option('--must_arg','-m',required=True)
+@click.option('--optional_arg','-o',default="DefaultValue")
+def cmd(must_arg,optional_arg):
     # 自身の名前から拡張子を除いてプログラム名(${prog_name})にする
     prog_name = os.path.splitext(os.path.basename(__file__))[0]
-
-    # オプションのパース
-    usage = "usage: %prog (Argument-1) [options]"
-    parser = OptionParser(usage=usage)
-    parser.add_option("-d", "--debug",dest="debug", action="store_true", help="debug", default=False)
-
-    # オプションと引数を格納し分ける
-    (options, args) = parser.parse_args()
-
-    # 引数のチェック
-    if len(args) != 1:
-        sys.stderr.write("argument error. use -h or --help option\n")
-        sys.exit(1)
 
     # 設定ファイルを読む
     config = ConfigParser()
@@ -38,7 +28,7 @@ if __name__ == "__main__" :
     # ロガーの設定
 
     # フォーマット
-    log_format = logging.Formatter("%(asctime)s [%(levelname)8s] %(message)s") 
+    log_format = logging.Formatter("%(asctime)s [%(levelname)8s] %(message)s")
     # レベル
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -51,15 +41,14 @@ if __name__ == "__main__" :
     file_handler.setFormatter(log_format)
     logger.addHandler(file_handler)
 
-
     # 処理開始
     try:
         # ログ出力
         logger.info("start")
-        logger.error("arg1 = {0}".format(args[0]))
 
-        # オプション取得
-        logger.info(options.debug)
+        # コマンドライン引数の利用
+        logger.error(f"must_arg = {must_arg}")
+        logger.error(f"optional_arg = {optional_arg}")
 
         # ライブラリ呼び出し
         mylib = MyLib()
@@ -76,3 +65,6 @@ if __name__ == "__main__" :
         # キャッチして例外をログに記録
         logger.exception(e)
         sys.exit(1)
+
+if __name__ == '__main__':
+    cmd()
