@@ -1,16 +1,18 @@
 import sys
 import os
-from configparser import ConfigParser
 import click
 import logging
 
 # 親ディレクトリをアプリケーションのホーム(${app_home})に設定
 app_home = os.path.abspath(os.path.join( os.path.dirname(os.path.abspath(__file__)) , ".." ))
-# ${app_home}/libをライブラリロードパスに追加
-sys.path.append(os.path.join(app_home,"lib"))
+# ${app_home}をライブラリロードパスに追加
+sys.path.append(os.path.join(app_home))
 
 # 自前のライブラリをロード
-from my_lib import MyLib
+from lib.my_lib import MyLib
+
+# 設定クラスのロード
+from conf.my_batch_conf import MyBatchConf
 
 # コマンドライン引数のハンドリング. must_argは必須オプション、optional_argは任意オプション
 @click.command()
@@ -19,11 +21,6 @@ from my_lib import MyLib
 def cmd(must_arg,optional_arg):
     # 自身の名前から拡張子を除いてプログラム名(${prog_name})にする
     prog_name = os.path.splitext(os.path.basename(__file__))[0]
-
-    # 設定ファイルを読む
-    config = ConfigParser()
-    conf_path = os.path.join(app_home,"conf", prog_name + ".conf")
-    config.read(conf_path)
 
     # ロガーの設定
 
@@ -54,9 +51,9 @@ def cmd(must_arg,optional_arg):
         mylib = MyLib()
         logger.info(mylib.get_name())
 
-        # 設定値読み込み
-        logger.info(config.get("section1","key1"))
-        logger.info(config.getboolean("section2","key2"))
+        # 設定値の利用
+        logger.info(MyBatchConf.key1)
+        logger.info(MyBatchConf.key2)
 
         # 例外が発生しても・・・
         raise Exception("My Exception")
