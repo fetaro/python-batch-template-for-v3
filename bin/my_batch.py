@@ -2,11 +2,12 @@ import sys
 import os
 import click
 import logging
+from pathlib import Path
 
 # 親ディレクトリをアプリケーションのホーム(${app_home})に設定
-app_home = os.path.abspath(os.path.join( os.path.dirname(os.path.abspath(__file__)) , ".." ))
+app_home = str(Path(__file__).parents[1])
 # ${app_home}をライブラリロードパスに追加
-sys.path.append(os.path.join(app_home))
+sys.path.append(app_home)
 
 # 自前のライブラリをロード
 from lib.my_lib import MyLib
