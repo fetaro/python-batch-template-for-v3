@@ -1,8 +1,9 @@
-import sys
-import os
-import click
 import logging
+import os
+import sys
 from pathlib import Path
+
+import click
 
 # 親ディレクトリをアプリケーションのホーム(${app_home})に設定
 app_home = str(Path(__file__).parents[1])
@@ -15,11 +16,12 @@ from lib.my_lib import MyLib
 # 設定クラスのロード
 from conf.my_batch_conf import MyBatchConf
 
+
 # コマンドライン引数のハンドリング. must_argは必須オプション、optional_argは任意オプション
 @click.command()
-@click.option('--must_arg','-m',required=True)
-@click.option('--optional_arg','-o',default="DefaultValue")
-def cmd(must_arg,optional_arg):
+@click.option('--must_arg', '-m', required=True)
+@click.option('--optional_arg', '-o', default="DefaultValue")
+def cmd(must_arg, optional_arg):
     # 自身の名前から拡張子を除いてプログラム名(${prog_name})にする
     prog_name = os.path.splitext(os.path.basename(__file__))[0]
 
@@ -35,7 +37,7 @@ def cmd(must_arg,optional_arg):
     stdout_handler.setFormatter(log_format)
     logger.addHandler(stdout_handler)
     # ログファイルへのハンドラ
-    file_handler = logging.FileHandler(os.path.join(app_home,"log", prog_name + ".log"), "a+")
+    file_handler = logging.FileHandler(os.path.join(app_home, "log", prog_name + ".log"), "a+")
     file_handler.setFormatter(log_format)
     logger.addHandler(file_handler)
 
@@ -63,6 +65,7 @@ def cmd(must_arg,optional_arg):
         # キャッチして例外をログに記録
         logger.exception(e)
         sys.exit(1)
+
 
 if __name__ == '__main__':
     cmd()
