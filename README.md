@@ -2,7 +2,9 @@
 
 ### 概要
 
-この雛形では以下のことをしています。
+これはPython3系(3.3以降)でバッチ処理を書く場合のテンプレートです。
+
+以下の機能を提供しています。
 
 * コマンドライン引数のパース(clickの利用)
 * 設定クラスの読み込み
@@ -19,7 +21,6 @@ app_home/
        ├ conf/
        │   └  my_batch_conf.py #←設定クラス
        ├ lib/
-       │   ├  __init__.py    #←モジュールをロードするのに必要
        │   └  my_lib.py      #←ライブラリ
        ├ tests/        
        │   └  test_my_lib.py #←単体テストコード
@@ -27,122 +28,6 @@ app_home/
        └ Pipfile             #←使うライブラリを列挙
 ```
 
-### 内容
-
-本体`my_batch.py`の内容
-
-```python
-import sys
-import os
-import click
-import logging
-
-# 親ディレクトリをアプリケーションのホーム(${app_home})に設定
-app_home = os.path.abspath(os.path.join( os.path.dirname(os.path.abspath(__file__)) , ".." ))
-# ${app_home}をライブラリロードパスに追加
-sys.path.append(os.path.join(app_home))
-
-# 自前のライブラリをロード
-from lib.my_lib import MyLib
-
-# 設定クラスのロード
-from conf.my_batch_conf import MyBatchConf
-
-# コマンドライン引数のハンドリング. must_argは必須オプション、optional_argは任意オプション
-@click.command()
-@click.option('--must_arg','-m',required=True)
-@click.option('--optional_arg','-o',default="DefaultValue")
-def cmd(must_arg,optional_arg):
-    # 自身の名前から拡張子を除いてプログラム名(${prog_name})にする
-    prog_name = os.path.splitext(os.path.basename(__file__))[0]
-
-    # ロガーの設定
-
-    # フォーマット
-    log_format = logging.Formatter("%(asctime)s [%(levelname)8s] %(message)s")
-    # レベル
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
-    # 標準出力へのハンドラ
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setFormatter(log_format)
-    logger.addHandler(stdout_handler)
-    # ログファイルへのハンドラ
-    file_handler = logging.FileHandler(os.path.join(app_home,"log", prog_name + ".log"), "a+")
-    file_handler.setFormatter(log_format)
-    logger.addHandler(file_handler)
-
-    # 処理開始
-    try:
-        # ログ出力
-        logger.info("start")
-
-        # コマンドライン引数の利用
-        logger.error(f"must_arg = {must_arg}")
-        logger.error(f"optional_arg = {optional_arg}")
-
-        # ライブラリ呼び出し
-        mylib = MyLib()
-        logger.info(mylib.get_name())
-
-        # 設定値の利用
-        logger.info(MyBatchConf.key1)
-        logger.info(MyBatchConf.key2)
-
-        # 例外が発生しても・・・
-        raise Exception("My Exception")
-
-    except Exception as e:
-        # キャッチして例外をログに記録
-        logger.exception(e)
-        sys.exit(1)
-
-if __name__ == '__main__':
-    cmd()        
-```
-
-設定クラス`conf/my_batch_conf.py`の内容
-
-```python
-class MyBatchConf(object):
-    key1 = "key1_value"
-    key2 = True
-
-```
-※）以前はconfigParserを利用していましたが、設定クラスの方がパースする必要が無いですし、IDEによる補完が効くため、今は利用しなくなりました。
-
-
-ライブラリ`my_lib.py`の内容
-
-```python
-class MyLib(object):
-    def get_name(self):
-        return "my_lib"
-
-```
-
-ライブラリの単体テストコード`test_my_lib.py`の内容
-
-```python
-import sys,os
-import unittest
-
-# ../libをロードパスに入れる
-app_home = os.path.abspath(os.path.join( os.path.dirname(os.path.abspath(__file__)) , ".." ))
-sys.path.append(os.path.join(app_home,"lib"))
-
-# ../テスト対象のライブラリのロード
-from my_lib import MyLib
-
-class TestMyLib(unittest.TestCase):
-
-    def test_get_name(self):
-        ml = MyLib()
-        self.assertEqual("my_lib", ml.get_name())
-
-if __name__ == '__main__':
-    unittest.main()
-```
 
 ### 実行
 
@@ -204,7 +89,7 @@ Exception: My Exception
 単体テストの実行
 
 ```
-bash-3.2$ python tests/test_my_lib.py
+$ python tests/test_my_lib.py
 ```
 
 実行結果
